@@ -11,7 +11,8 @@ setwd(wd)
 mylist <- llply(files, 
                 read.csv, 
                 col.names=c("Name", "Gender", "Freq"),
+                as.is = T,
                 header=F)
 df <- do.call(rbind, mylist)
-df$year <- rep(as.Date(gsub("\\D", "", files),"%Y"),
+df$Year <- rep(as.Date(gsub("\\D", "", files),"%Y"),
                       sapply(mylist, nrow))
