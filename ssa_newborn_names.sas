@@ -328,14 +328,11 @@ data name_stats;
 run;
 
 proc means data = name_stats nway;
+title "Cluster Summary Information";
   var freq_mean year_min year_max year_n 
         year_gender_rnk_min year_gender_rnk_Max year_gender_rnk_Mean;
   class cluster;
   output out=cluster_summary (drop = _TYPE_ _FREQ_) mean= ;
-run;
-
-proc print data = cluster_summary;
-  title "Cluster Summary";
 run;
 
 proc sql noprint;
