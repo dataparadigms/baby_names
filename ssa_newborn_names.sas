@@ -1,6 +1,7 @@
 /*-----------------------------------------------------------------------------
   Analyzes national trends in the names of newborns as release by the 
   SSA.gov @ http://www.ssa.gov/OACT/babynames/limits.html 
+
  ----------------------------------------------------------------------------*/
 options nodate orientation=landscape;
 
@@ -26,7 +27,7 @@ data directory;
   keep data_file year;
 run;
 
-* Quick check to make sure we"ve pulled in what we expect;
+* Quick check to make sure we've pulled in what we expect;
 proc sql;
   select
     min(year) as min, 
@@ -103,6 +104,8 @@ proc sort data = all_time dupout=dups_diff_freq nodupkey;
   by gender year name;
 run;
 
+
+
 *--- Section 2:  Initial Exploration ---;
 proc rank data = all_time out = all_time_rnk
   ties = low descending;
@@ -154,16 +157,25 @@ data top_names;
     yr.definekey("year");
     yr.definedata("year_tot");
     yr.definedone();
-  end;
 
-  if yr.find() ge 0;
-  top_rf = freq / year_tot;
+    call missing(year_tot);
+  end;
+  
+  rc = yr.find();
+
+  if rc not= 0 then put _all_;
+  if rc = 0;
+
+  if year_tot NOT= 0 then top_rf = freq / year_tot;
+
+  drop rc;
 run;
 
 proc gplot data = top_names;
   title "Relative Frequency of Top Names(&gender.)";
   plot top_rf*year=name;
 run;quit;
+
 
 *--- Section 3:  Find names that with popular longevity ---;
 proc means data = all_time_rnk nway noprint;
@@ -210,6 +222,7 @@ proc gchart data = list_of_possible_names;
   vbar name / sumvar = year_gender_rnk_mean;
 run;quit;
 
+
 *--- Section 4:  Generate statistics and charts for possible names ---;
 data name_list / view=name_list;
   set list_of_possible_names;
@@ -217,7 +230,7 @@ data name_list / view=name_list;
 run;
 
 data detail_top_names;
-  set all_time_rnk;
+  set all_time_rnk(obs=100);
 
   if 1 = 2 then do;
     set name_list year_tot;
@@ -232,10 +245,16 @@ data detail_top_names;
     yr.definekey("year");
     yr.definedata("year_tot");
     yr.definedone();
+
+    call missing (name, year_tot);
   end;
 
-  if keep.find() >= 0;
-  if yr.find() >= 0;
+  krc = keep.find();
+  yrc = yr.find();
+
+  if (krc = 0) and  (yrc = 0);
+
+  drop krc yrc;
 run;
 
 proc sort data = detail_top_names;
@@ -276,33 +295,41 @@ run;
 quit;
 
 %mend;
+
 * Run macro as an example;
 %name_plots(name=Andrew);
   
-*--- Section 5:  Cluster Names into groups ---;
-proc stdize data=name_stats out=stdize_out method=std;
+* Close the ods;
+ods pdf close;
+
+proc contents data = name_stats out= contents noprint;
+run;
+
+
+* Cluster the names;
+proc stdize data=name_stats out=sdzout method=std;
   var freq_mean freq_p50 freq_stddev year_min year_max year_n year_gender_rnk_Min
         year_gender_rnk_Max year_gender_rnk_Mean;
 run;
 
-data stdize_out;
- set stdize_out;
+data sdzout;
+ set sdzout;
  keep name freq_mean freq_p50 freq_stddev year_min year_max year_n year_gender_rnk_Min
         year_gender_rnk_Max year_gender_rnk_Mean;
 run;
 
-proc corr data = stdize_out outp=cor noprint;
+proc corr data = sdzout outp=cor noprint;
 run;
 
-data stdize_out_nocorr;
-  set stdize_out;
+data sdzout;
+  set sdzout;
   drop freq_p50 freq_stddev year_gender_rnk_Min;
 run;
 
-proc corr data = stdize_out_nocorr outp=cor noprint;
+proc corr data = sdzout outp=cor;
 run;
 
-proc fastclus data=stdize_out_nocorr out=clust maxclusters=7 maxiter=100 noprint;
+proc fastclus data=sdzout out=clust maxclusters=7 maxiter=100 noprint;
 run;
 
 data clust_stat_merge / view = clust_stat_merge;
@@ -318,16 +345,24 @@ data name_stats;
   end;
 
   if _n_ = 1 then do;
-    declare hash clst(dataset: "clust_stat_merge");
-    clst.definekey("name");
-    clst.definedata("cluster");
+    declare hash clst(dataset: 'clust_stat_merge');
+    clst.definekey('name');
+    clst.definedata('cluster');
     clst.definedone();
+
+    call missing (cluster);
   end;
 
-  if clst.find() >= 0;
+  rc = clst.find();
+
+  if rc not= 0 then put _all_;
+  if rc = 0;
+
+  drop rc;
+
 run;
 
-proc means data = name_stats nway;
+proc means data = name_stats nway noprint;
 title "Cluster Summary Information";
   var freq_mean year_min year_max year_n 
         year_gender_rnk_min year_gender_rnk_Max year_gender_rnk_Mean;
