@@ -207,8 +207,8 @@ proc univariate data = name_stats (where = (year_n = %eval(&every_year.))) nopri
 run;quit;
 
 proc univariate data = name_stats (where = (year_n = %eval(&every_year.))) noprint;
-title "Percent of Median Ranking for Names used Every Year";
-histogram year_gender_rnk_Mean;
+  title "Percent of Median Ranking for Names used Every Year";
+  histogram year_gender_rnk_Mean;
 run;quit;
 
 * Name always ranked in the top 200 or XXX;
@@ -299,13 +299,6 @@ quit;
 * Run macro as an example;
 %name_plots(name=Andrew);
   
-* Close the ods;
-ods pdf close;
-
-proc contents data = name_stats out= contents noprint;
-run;
-
-
 * Cluster the names;
 proc stdize data=name_stats out=sdzout method=std;
   var freq_mean freq_p50 freq_stddev year_min year_max year_n year_gender_rnk_Min
@@ -363,7 +356,7 @@ data name_stats;
 run;
 
 proc means data = name_stats nway noprint;
-title "Cluster Summary Information";
+  title "Cluster Summary Information";
   var freq_mean year_min year_max year_n 
         year_gender_rnk_min year_gender_rnk_Max year_gender_rnk_Mean;
   class cluster;
