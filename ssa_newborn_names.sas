@@ -230,7 +230,7 @@ data name_list / view=name_list;
 run;
 
 data detail_top_names;
-  set all_time_rnk(obs=100);
+  set all_time_rnk;
 
   if 1 = 2 then do;
     set name_list year_tot;
@@ -348,7 +348,7 @@ data name_stats;
 
   rc = clst.find();
 
-  if rc not= 0 then put _all_;
+  if rc not = 0 then put _all_;
   if rc = 0;
 
   drop rc;
