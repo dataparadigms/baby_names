@@ -27,7 +27,7 @@ data directory;
   keep data_file year;
 run;
 
-* Quick check to make sure we"ve pulled in what we expect;
+* Quick check to make sure we pulled in what we expect;
 proc sql;
   select
     min(year) as min, 
