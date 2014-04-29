@@ -27,7 +27,7 @@ data directory;
   keep data_file year;
 run;
 
-* Quick check to make sure we've pulled in what we expect;
+* Quick check to make sure we"ve pulled in what we expect;
 proc sql;
   select
     min(year) as min, 
@@ -345,9 +345,9 @@ data name_stats;
   end;
 
   if _n_ = 1 then do;
-    declare hash clst(dataset: 'clust_stat_merge');
-    clst.definekey('name');
-    clst.definedata('cluster');
+    declare hash clst(dataset: "clust_stat_merge");
+    clst.definekey("name");
+    clst.definedata("cluster");
     clst.definedone();
 
     call missing (cluster);
